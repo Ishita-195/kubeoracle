@@ -147,6 +147,7 @@ kubeoracle/
 ```
 
 ---
+<!-- Contributor: samziya23  and Ishita-195 -->
 
 ## 🛠 Tech Stack
 
