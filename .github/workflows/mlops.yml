@@ -1,0 +1,273 @@
+name: KubeOracle MLOps CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'mlops/**'
+      - '.github/workflows/mlops.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'mlops/**'
+  schedule:
+    # Nightly retraining at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      force_retrain:
+        description: 'Force model retraining even without drift'
+        required: false
+        default: 'false'
+      n_samples:
+        description: 'Number of synthetic training samples'
+        required: false
+        default: '3000'
+
+env:
+  PYTHON_VERSION: '3.11'
+  MLFLOW_TRACKING_URI: 'mlruns'       # local filesystem; swap for remote server in prod
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  lint-and-test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt
+          pip install -r mlops/requirements-mlops.txt
+          pip install pytest pytest-cov ruff
+
+      - name: Lint (ruff)
+        run: ruff check backend/ mlops/ --ignore E501
+
+      - name: Unit tests
+        run: |
+          pytest mlops/tests/ backend/tests/ -v \
+            --cov=backend --cov=mlops \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=70
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+        continue-on-error: true
+
+  # ──────────────────────────────────────────────────────────────────────────
+  drift-check:
+    name: Model Drift Check
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    outputs:
+      drift_detected: ${{ steps.drift.outputs.drift_detected }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install ML deps
+        run: |
+          pip install -r backend/requirements.txt
+          pip install -r mlops/requirements-mlops.txt
+
+      - name: Restore prediction log (from cache / artifact)
+        uses: actions/cache@v4
+        with:
+          path: mlops/monitoring/prediction_log.jsonl
+          key: prediction-log-${{ github.ref }}-${{ github.run_id }}
+          restore-keys: prediction-log-${{ github.ref }}-
+
+      - name: Run drift check
+        id: drift
+        run: |
+          python mlops/monitoring/monitor.py check-drift && \
+            echo "drift_detected=false" >> $GITHUB_OUTPUT || \
+            echo "drift_detected=true"  >> $GITHUB_OUTPUT
+
+      - name: Save drift report artifact
+        run: python mlops/monitoring/monitor.py report > drift_report.json
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: drift_report.json
+
+  # ──────────────────────────────────────────────────────────────────────────
+  train-and-evaluate:
+    name: Train & Evaluate Model
+    runs-on: ubuntu-latest
+    needs: drift-check
+    if: |
+      needs.drift-check.outputs.drift_detected == 'true' ||
+      github.event_name == 'schedule'                    ||
+      github.event.inputs.force_retrain == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt
+          pip install -r mlops/requirements-mlops.txt
+
+      - name: Restore model registry cache
+        uses: actions/cache@v4
+        with:
+          path: mlops/model_registry/artifacts/
+          key: model-registry-${{ github.ref }}-${{ github.run_id }}
+          restore-keys: model-registry-${{ github.ref }}-
+
+      - name: Run training pipeline
+        run: |
+          N_SAMPLES=${{ github.event.inputs.n_samples || '3000' }}
+          python mlops/training/train.py --n-samples $N_SAMPLES --experiment kubeoracle-ci
+
+      - name: Champion/Challenger evaluation
+        run: |
+          python mlops/pipelines/retrain_pipeline.py \
+            ${{ github.event.inputs.force_retrain == 'true' && '--force' || '' }}
+
+      - name: List registry after training
+        run: python mlops/model_registry/registry.py list
+
+      - name: Save model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model-${{ github.run_id }}
+          path: |
+            mlops/model_registry/artifacts/model_*.pkl
+            mlops/model_registry/artifacts/model_*_meta.json
+            mlops/model_registry/reports/
+
+      - name: Save MLflow runs
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-runs-${{ github.run_id }}
+          path: mlruns/
+        continue-on-error: true
+
+  # ──────────────────────────────────────────────────────────────────────────
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: train-and-evaluate
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download trained model
+        uses: actions/download-artifact@v4
+        with:
+          name: trained-model-${{ github.run_id }}
+          path: mlops/model_registry/artifacts/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (backend)
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/backend
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build & push backend (with baked-in model)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: kubeoracle-devops/backend.Dockerfile
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata (frontend)
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/frontend
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build & push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend/
+          file: kubeoracle-devops/frontend.Dockerfile
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ──────────────────────────────────────────────────────────────────────────
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to staging cluster
+        run: |
+          echo "🚀 Deploying to staging..."
+          # kubectl set image deployment/kubeoracle-backend \
+          #   backend=ghcr.io/${{ github.repository }}/backend:sha-${{ github.sha }} \
+          #   -n kubeoracle-staging
+          echo "kubectl commands would run here with KUBECONFIG from secrets."
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against staging endpoint..."
+          # curl -f https://staging.kubeoracle.example.com/health
+
+  # ──────────────────────────────────────────────────────────────────────────
+  notify:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [lint-and-test, drift-check, train-and-evaluate, build-and-push]
+    if: failure()
+    steps:
+      - name: Notify Slack on failure
+        run: |
+          echo "Pipeline failed — would send Slack notification here."
+          # curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+          #   -d '{"text":"❌ KubeOracle MLOps pipeline failed on ${{ github.ref }}"}'

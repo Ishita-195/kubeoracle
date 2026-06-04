@@ -1,0 +1,22 @@
+# mlops/requirements-mlops.txt
+# Install alongside backend/requirements.txt
+
+# Experiment tracking
+mlflow==2.13.0
+
+# Training extras (already in backend/requirements.txt but pinned here for clarity)
+xgboost==2.0.3
+scikit-learn==1.4.1.post1
+numpy==1.26.4
+pandas==2.2.1
+
+# Monitoring server
+fastapi==0.110.0
+uvicorn[standard]==0.27.1
+
+# Testing
+pytest==8.2.0
+pytest-cov==5.0.0
+
+# Linting
+ruff==0.4.4

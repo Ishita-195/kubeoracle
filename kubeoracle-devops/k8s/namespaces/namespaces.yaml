@@ -1,0 +1,29 @@
+# ─────────────────────────────────────────────────────────────
+# KubeOracle – Namespace Definitions
+# ─────────────────────────────────────────────────────────────
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubeoracle
+  labels:
+    app.kubernetes.io/part-of: kubeoracle
+    environment: demo
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubeoracle-monitoring
+  labels:
+    app.kubernetes.io/part-of: kubeoracle
+    purpose: monitoring
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubeoracle-demo
+  labels:
+    app.kubernetes.io/part-of: kubeoracle
+    purpose: demo-workloads

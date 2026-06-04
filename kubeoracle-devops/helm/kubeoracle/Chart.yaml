@@ -1,0 +1,14 @@
+apiVersion: v2
+name: kubeoracle
+description: KubeOracle - AI-powered Kubernetes monitoring and anomaly detection
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: KubeOracle Team
+keywords:
+  - kubernetes
+  - monitoring
+  - ai
+  - anomaly-detection
+  - prometheus
