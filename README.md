@@ -1,4 +1,4 @@
-# 🔮 KubeOracle — AI Kubernetes Observability Dashboard
+## 🔮 KubeOracle — AI Kubernetes Observability Dashboard
 
 > Hackathon project for ABB Accelerator 2026 | Team of 4
 
