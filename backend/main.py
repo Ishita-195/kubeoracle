@@ -9,10 +9,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from routers.services import router as services_router
-from routers.simulation import router as simulation_router
-from routers.insights import router as insights_router
-from routers.mlops import router as mlops_router
+from routers.services import router as services_router  # noqa: E402
+from routers.simulation import router as simulation_router  # noqa: E402
+from routers.insights import router as insights_router  # noqa: E402
+from routers.mlops import router as mlops_router  # noqa: E402
 
 app = FastAPI(
     title="KubeOracle API",

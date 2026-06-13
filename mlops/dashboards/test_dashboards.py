@@ -16,10 +16,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger("dashboard_tests")
 
-from model_performance import ModelPerformanceDashboard
-from data_drift import DataDriftDashboard
-from training_pipeline import TrainingPipelineDashboard
-from system_health import SystemHealthDashboard
+from model_performance import ModelPerformanceDashboard  # noqa: E402
+from data_drift import DataDriftDashboard  # noqa: E402
+from training_pipeline import TrainingPipelineDashboard  # noqa: E402
+from system_health import SystemHealthDashboard  # noqa: E402
 
 
 class TestDashboards:

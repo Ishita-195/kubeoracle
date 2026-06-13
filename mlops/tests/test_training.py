@@ -4,9 +4,7 @@ Unit tests for the KubeOracle MLOps training pipeline
 """
 
 import json
-import pickle
 import sys
-import tempfile
 from pathlib import Path
 
 import numpy as np

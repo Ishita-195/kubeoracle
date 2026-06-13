@@ -14,7 +14,6 @@ Usage (CLI):
 
 import json
 import pickle
-import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -99,9 +98,6 @@ def rollback() -> None:
 
 def get_production_model():
     """Load and return the production model pipeline."""
-    reg = _load_registry()
-    prod_ver = reg.get("production")
-
     # Try production symlink first
     prod_link = ARTIFACTS_DIR / "model_production.pkl"
     if prod_link.exists():

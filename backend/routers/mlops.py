@@ -2,7 +2,7 @@
 backend/routers/mlops.py
 MLOps Router — Model metrics, training pipelines, drift detection, and system health
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any

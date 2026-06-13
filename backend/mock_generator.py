@@ -4,7 +4,6 @@ Generates synthetic Kubernetes-style metrics for demo purposes.
 No real Minikube connection needed for the demo.
 """
 import random
-import time
 from datetime import datetime
 
 SERVICES = ["payment-service", "auth-service", "user-service", "notification-service"]
@@ -24,7 +23,9 @@ def set_simulation(service: str | None):
 
 def generate_metric(service: str) -> dict:
     base = BASE_METRICS[service]
-    jitter = lambda v, scale=0.1: v + random.gauss(0, v * scale)
+
+    def jitter(v, scale=0.1):
+        return v + random.gauss(0, v * scale)
 
     if _simulation_state["active"] and _simulation_state["failed"] == service:
         # Failed service — spike everything

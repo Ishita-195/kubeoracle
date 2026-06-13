@@ -16,7 +16,6 @@ Run as a standalone service:
 
 import json
 import logging
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -60,7 +59,7 @@ def _load_recent_predictions(n: int = WINDOW_SIZE) -> list[dict]:
     if not LOG_PATH.exists():
         return []
     lines = LOG_PATH.read_text().splitlines()
-    return [json.loads(l) for l in lines[-n:] if l.strip()]
+    return [json.loads(line) for line in lines[-n:] if line.strip()]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -211,7 +210,7 @@ def start_server(host: str = "0.0.0.0", port: int = 8001):
         if not ALERT_PATH.exists():
             return []
         lines = ALERT_PATH.read_text().splitlines()
-        return [json.loads(l) for l in lines if l.strip()]
+        return [json.loads(line) for line in lines if line.strip()]
 
     @app.get("/stats")
     def stats():
