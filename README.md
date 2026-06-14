@@ -1,165 +1,99 @@
-## 🔮 KubeOracle — AI Kubernetes Observability Dashboard
+# 🔮 KubeOracle
 
-> Hackathon project for ABB Accelerator 2026
+> **Predictive Kubernetes observability & self-healing** — powered by XGBoost, FastAPI, React, and Prometheus.
+
+Built for **ABB Accelerator 2026**. KubeOracle visualizes Kubernetes cluster
+health in real time, predicts service failures, simulates blast radius, and
+generates AI-assisted `kubectl` remediation commands.
+
+![Status](https://img.shields.io/badge/status-hackathon-blue)
+![Frontend](https://img.shields.io/badge/frontend-React%20%2B%20TypeScript-61DAFB)
+![Backend](https://img.shields.io/badge/backend-FastAPI-009688)
 
 ---
 
-## ⚡ FASTEST WAY TO RUN (5 minutes, no Docker needed)
+## ✨ Features
 
-### Step 1 — Start the Frontend
+- **Live topology view** — services, dependencies, and health rendered with React Flow.
+- **Failure simulation** — inject a fault and watch the blast radius propagate.
+- **Predictive ML** — XGBoost model flags services likely to fail.
+- **AI remediation** — generates suggested `kubectl` fix commands.
+- **Metrics & alerts** — Prometheus-backed metrics with a live alert feed.
+- **Works offline** — the frontend ships with built-in mock data and runs fully without the backend.
 
-Open Terminal 1:
+---
+
+## ⚡ Quick Start (5 minutes, no Docker required)
+
+### 1. Frontend
 
 ```bash
-cd kubeoracle/frontend
+cd frontend
 npm install
 npm run dev
-```
 
-✅ Dashboard opens at: **http://localhost:3000**
+Dashboard → http://localhost:3000
 
-> The frontend has ALL mock data built-in. It works 100% without the backend.
+The frontend includes built-in mock data and works 100% without the backend.
 
----
-
-### Step 2 — Start the Backend (Optional but recommended)
-
-Open Terminal 2:
-
-```bash
-cd kubeoracle/backend
-
-# Create virtual environment
+2. Backend (optional, recommended)
+cd backend
 python -m venv venv
 
-# Activate it (Mac/Linux):
+# macOS / Linux
 source venv/bin/activate
-# Activate it (Windows):
+# Windows
 venv\Scripts\activate
 
-# Install dependencies
 pip install -r requirements.txt
-
-# Copy env file
-cp .env.example .env
-# Optional: add your ANTHROPIC_API_KEY to .env for real AI
-
-# Run backend
+cp .env.example .env        # then add your API key (see AI Setup)
 uvicorn main:app --reload --port 8000
-```
+API → http://localhost:8000 · Docs → http://localhost:8000/docs
 
-✅ API running at: **http://localhost:8000**
+🐳 Run with Docker
+From the repository root:
 
----
-
-## 🐳 Alternative: Run with Docker (one command)
-
-```bash
-cd kubeoracle
 docker-compose up --build
-```
+☸️ Optional: Real Minikube Setup
+Deploy against a real cluster using the manifests in k8s/:
 
-Dashboard: http://localhost:3000
+minikube start
+kubectl apply -f k8s/
+kubectl get pods
+🤖 AI Setup
+KubeOracle auto-detects an AI provider at startup based on the API key present
+in your .env:
 
----
+Provider	Env var
+OpenRouter	OPENROUTER_API_KEY
+Groq	GROQ_API_KEY
+Mock fallback	(none required)
+If no key is set, the backend runs in mock mode so the demo still works.
+See AI_SETUP.md for full details.
 
-## ☸️ Optional: Real Minikube Setup (for extra judge points)
-
-### Install Minikube
-```bash
-# Mac
-brew install minikube
-
-# Windows — download from: https://minikube.sigs.k8s.io/docs/start/
-```
-
-### Start Minikube
-```bash
-minikube start --cpus=4 --memory=4g
-```
-
-### Deploy fake services
-```bash
-kubectl apply -f kubeoracle/k8s/services.yaml
-```
-
-### Check pods are running
-```bash
-kubectl get pods -n kubeoracle
-```
-
-You'll see payment-service, auth-service, user-service, notification-service running.
-
----
-
-## 🎬 HOW TO DEMO (Step by Step)
-
-1. Open http://localhost:3000
-2. Show the dashboard — explain the 4 services, metrics, AI insights
-3. Click **"Simulate Failure"** on `payment-service`
-4. Watch:
-   - 🔴 Nodes turn red and pulse
-   - ⚡ Blast radius spreads to auth-service + notification-service
-   - 📊 Charts spike dramatically
-   - 🚨 Alert feed fills with critical alerts
-   - 🤖 AI panel updates with remediation insights
-5. Show the AI-generated kubectl fix commands
-6. Click "Reset Simulation" to restore
-
-**Demo talking points:**
-- "KubeOracle uses XGBoost ML to predict failures before they happen"
-- "When a failure occurs, we visualize the cascade blast radius in real time"
-- "Claude AI analyzes the failure and suggests exact kubectl remediation commands"
-- "This can save engineering teams 30+ minutes of incident response time"
-
----
-
-## 🎥 Recording the Demo Video
-
-1. Use OBS Studio (free) or QuickTime (Mac)
-2. Record at 1920x1080
-3. Zoom into the dashboard so it fills the screen
-4. Narrate while clicking through the simulation
-5. Keep it 2-3 minutes max
-
----
-
-## 📁 Project Structure
-
-```
-kubeoracle/
-├── frontend/              # React + TypeScript dashboard
-│   ├── src/
-│   │   ├── components/    # All UI components
-│   │   ├── pages/         # Dashboard page
-│   │   ├── lib/           # Mock data + API client
-│   │   └── types/         # TypeScript types
-│   └── package.json
-├── backend/               # FastAPI Python backend
-│   ├── main.py            # Entry point
-│   ├── mock_generator.py  # Synthetic metric generation
-│   ├── ml/
-│   │   └── predictor.py   # XGBoost failure prediction
-│   └── routers/           # API endpoints
-├── k8s/                   # Kubernetes YAML files
-├── prometheus/            # Prometheus config
-└── docker-compose.yml     # One-command startup
-```
-
----
-<!-- Contributor: samziya23  and Ishita-195 -->
-
-## 🛠 Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React, TypeScript, Tailwind CSS, Framer Motion |
-| Visualization | React Flow, Recharts |
-| Backend | FastAPI (Python) |
-| ML | XGBoost, scikit-learn |
-| AI | Claude API (Anthropic) |
-| DevOps | Docker, Minikube, Prometheus |
-
----
-
-Built with ❤️ for ABB Accelerator 2026
+🎬 Demo Script
+Open http://localhost:3000.
+Review the dashboard — 4 services with live metrics.
+Click Simulate Failure on payment-service.
+Watch the red nodes, blast-radius graph, and alert feed update.
+Review the AI-generated kubectl remediation commands.
+Click Reset Simulation to restore healthy state.
+📁 Project Structure
+.
+├── frontend/             # React + TypeScript dashboard
+├── backend/              # FastAPI service (services, simulations, insights, mlops routers)
+├── mlops/                # ML training & model artifacts
+├── kubeoracle-devops/    # DevOps / deployment tooling
+├── k8s/                  # Kubernetes manifests
+├── prometheus/           # Prometheus configuration
+├── .github/workflows/    # CI pipelines
+├── AI_SETUP.md           # AI provider configuration guide
+└── docker-compose.yml
+🛠 Tech Stack
+Layer	Technologies
+Frontend	React, TypeScript, Tailwind CSS, Framer Motion
+Visualization	React Flow, Recharts
+Backend	FastAPI (Python)
+ML	XGBoost, scikit-learn
+AI	OpenRouter / Groq (with mock fallback)
+DevOps	Docker, Minikube, Prometheus
