@@ -103,33 +103,25 @@ See [`AI_SETUP.md`](AI_SETUP.md) for detailed configuration.
 ---
 
 ## 📁 Project Structure
+## 📁 Project Structure
+
+```
 kubeoracle/
-
-├── frontend/              # React + TypeScript dashboard
-
+├── frontend/                  # React + TypeScript dashboard
 │   └── src/
-
-│       ├── components/    # Topology, alerts, MLOps dashboards
-
-│       └── mock/          # Built-in offline mock data
-
-├── backend/               # FastAPI service
-
-│   └── routers/           # services, simulations, insights, mlops
-
-├── mlops/                 # XGBoost training pipeline & model artifacts
-
-├── k8s/                   # Kubernetes manifests (3 namespaces)
-
-├── prometheus/            # Prometheus scrape config
-
-├── kubeoracle-devops/     # Helm chart, CI/CD tooling
-
-├── .github/workflows/     # GitHub Actions CI pipelines
-
+│       ├── components/        # Topology, alerts, MLOps dashboards
+│       └── mock/              # Built-in offline mock data
+├── backend/                   # FastAPI service
+│   └── routers/               # services, simulations, insights, mlops
+├── mlops/                     # XGBoost training pipeline & model artifacts
+├── k8s/                       # Kubernetes manifests (3 namespaces)
+├── prometheus/                # Prometheus scrape config
+├── kubeoracle-devops/         # Helm chart, CI/CD tooling
+├── .github/
+│   └── workflows/             # GitHub Actions CI pipelines
 ├── docker-compose.yml
-
 └── AI_SETUP.md
+```
 
 ---
 
