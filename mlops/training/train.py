@@ -77,14 +77,14 @@ def generate_synthetic_data(n: int = 3000, seed: int = 42) -> tuple[np.ndarray, 
         latency    = rng.uniform(20, 12000)
         error_rate = rng.uniform(0, 100)
 
-        # Multi-condition failure label (mirrors predictor.py logic + extras)
+        # Multi-condition failure label — tuned to produce a balanced dataset
+        # (~37% positives) so the classifier learns a real decision boundary
+        # rather than a near-degenerate "always fail" rule.
         fail = (
-            (cpu > 85 and memory > 80) or
-            (restarts >= 3) or
-            (error_rate > 20) or
-            (latency > 3000 and error_rate > 5) or
-            (cpu > 90) or
-            (memory > 95)
+            (cpu > 88 and memory > 85) or            # CPU and memory both critical
+            (restarts >= 10) or                      # severe crash-looping
+            (error_rate > 85) or                     # very high error rate
+            (latency > 9000 and error_rate > 55)     # severe latency with errors
         )
         X.append([cpu, memory, restarts, latency, error_rate])
         y.append(int(fail))

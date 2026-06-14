@@ -1,0 +1,23 @@
+# Coverage configuration for KubeOracle MLOps.
+#
+# The Plotly/Dash dashboard modules under mlops/dashboards are a presentation
+# layer that can only be exercised through a running browser, so they are
+# excluded from the unit-test coverage gate. Test files, virtualenvs and
+# package markers are excluded as well.
+[run]
+branch = False
+omit =
+    */tests/*
+    */test_*.py
+    */dashboards/*
+    */venv/*
+    */.ci-venv/*
+    */__init__.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError
+    def _cli
+show_missing = True
