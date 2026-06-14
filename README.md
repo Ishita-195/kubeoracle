@@ -1,4 +1,4 @@
-# 🔮 KubeOracle
+# KubeOracle
 
 > **AI-powered Kubernetes failure prediction & self-healing platform** — built with XGBoost, FastAPI, React, and Prometheus.
 
@@ -14,7 +14,7 @@ Built for **ABB Accelerator 2026**.
 
 ---
 
-## 🚀 What It Does
+## What It Does
 
 | Capability | Description |
 |---|---|
@@ -28,7 +28,7 @@ Built for **ABB Accelerator 2026**.
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Frontend (2 minutes, no backend needed)
 
@@ -76,7 +76,7 @@ kubectl get pods
 
 ---
 
-## 🤖 AI Setup
+## AI Setup
 
 KubeOracle auto-detects your AI provider at startup based on the key present in `.env`:
 
@@ -91,7 +91,7 @@ See [`AI_SETUP.md`](AI_SETUP.md) for detailed configuration.
 
 ---
 
-## 🎬 Live Demo Walkthrough
+## Live Demo Walkthrough
 
 1. Open [http://localhost:3000](http://localhost:3000)
 2. Review the dashboard — 4 services with live health metrics
@@ -102,8 +102,7 @@ See [`AI_SETUP.md`](AI_SETUP.md) for detailed configuration.
 
 ---
 
-## 📁 Project Structure
-## 📁 Project Structure
+## Project Structure
 
 ```
 kubeoracle/
@@ -125,7 +124,7 @@ kubeoracle/
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Technologies |
 |---|---|
@@ -138,10 +137,25 @@ kubeoracle/
 
 ---
 
-## 📊 Model Performance
+## Model Performance
 
 | Metric | Score |
 |---|---|
 | F1-Score | **94%** |
 | Drift Detection | PSI + KL Divergence |
 | Retraining Trigger | Automated on drift threshold breach |
+
+## Authors & Contributors
+
+**Ishita Anand** 
+[GitHub](https://github.com/Ishita-195)
+
+**Samridhi Shashwat**
+[GitHub](https://github.com/samziya23)
+
+**Ramanuj Sahu**
+[GitHub](https://github.com/RamanujSahu432)
+
+---
+
+*Built with ❤️ for ABB Accelerator 2026*
